@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lazarus</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body class="h-screen bg-slate-950 overflow-hidden">
+  <div id="app" class="flex flex-col h-full overflow-hidden">
+    
+    <!-- View: Auth (PIN Entry / Setup) -->
+    <div id="view-auth" class="flex-1 flex flex-col p-5 hidden">
+      <h1 class="text-[10px] font-medium text-slate-600 uppercase tracking-[0.2em] mb-8">Lazarus</h1>
+      
+      <!-- Value prop -->
+      <div id="welcome-content" class="mb-8">
+        <h2 class="text-[22px] font-normal text-slate-200 leading-tight">Enter PIN</h2>
+        <p class="text-[22px] font-normal text-slate-500 leading-tight">to view saved form fields.</p>
+      </div>
+      
+      <!-- Features (only on setup) -->
+      <div id="features-section" class="mb-6 hidden">
+        <p class="text-slate-600 text-[13px] leading-relaxed max-w-[240px] mb-4">Everything you type is saved locally. Crash, refresh, accidental close — come back here.</p>
+        <div class="flex items-center gap-4 text-[11px] text-slate-600">
+          <span class="flex items-center gap-1.5">
+            <span class="w-1 h-1 rounded-full bg-emerald-600"></span>
+            Automatic
+          </span>
+          <span class="flex items-center gap-1.5">
+            <span class="w-1 h-1 rounded-full bg-emerald-600"></span>
+            Local-only
+          </span>
+          <span class="flex items-center gap-1.5">
+            <span class="w-1 h-1 rounded-full bg-emerald-600"></span>
+            Private
+          </span>
+        </div>
+      </div>
+      
+      <!-- PIN Section -->
+      <div>
+        <div class="flex items-center gap-2 mb-2">
+          <div class="pin-container">
+            <input type="password" maxlength="1" class="pin-digit" data-pin-index="0" inputmode="numeric" pattern="[0-9]" autocomplete="off" autofocus>
+            <input type="password" maxlength="1" class="pin-digit" data-pin-index="1" inputmode="numeric" pattern="[0-9]" autocomplete="off">
+            <input type="password" maxlength="1" class="pin-digit" data-pin-index="2" inputmode="numeric" pattern="[0-9]" autocomplete="off">
+            <input type="password" maxlength="1" class="pin-digit" data-pin-index="3" inputmode="numeric" pattern="[0-9]" autocomplete="off">
+          </div>
+          <p id="auth-error" class="text-red-400 text-xs hidden">Incorrect</p>
+        </div>
+      </div>
+      
+      <!-- Confirm PIN (for setup) -->
+      <div id="confirm-pin-section" class="mt-4 hidden">
+        <p class="text-slate-500 text-xs mb-2">Confirm PIN</p>
+        <div class="flex items-center gap-2">
+          <div class="pin-container" id="confirm-pin-container">
+            <input type="password" maxlength="1" class="pin-digit" data-confirm-index="0" inputmode="numeric" pattern="[0-9]" autocomplete="off">
+            <input type="password" maxlength="1" class="pin-digit" data-confirm-index="1" inputmode="numeric" pattern="[0-9]" autocomplete="off">
+            <input type="password" maxlength="1" class="pin-digit" data-confirm-index="2" inputmode="numeric" pattern="[0-9]" autocomplete="off">
+            <input type="password" maxlength="1" class="pin-digit" data-confirm-index="3" inputmode="numeric" pattern="[0-9]" autocomplete="off">
+          </div>
+          <p id="confirm-error" class="text-red-400 text-xs hidden">Doesn't match</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- View: Vault (Main) -->
+    <div id="view-vault" class="flex-1 flex flex-col min-h-0 hidden">
+      <!-- Header -->
+      <header class="header-blur sticky top-0 z-20 px-3 py-2">
+        <div class="flex items-center justify-between mb-2">
+          <h1 class="text-xs font-semibold text-slate-100 uppercase tracking-[0.2em]">Lazarus</h1>
+          <button id="settings-btn" class="btn-icon -mr-1" aria-label="Settings">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+            </svg>
+          </button>
+        </div>
+        
+        <!-- Search -->
+        <div class="relative">
+          <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+          </svg>
+          <input type="text" id="search-input" class="search-input" placeholder="Search...">
+        </div>
+      </header>
+
+      <!-- Content -->
+      <div id="list-container" class="flex-1 overflow-y-auto overflow-x-hidden px-3 py-2 relative z-0">
+        <!-- Empty state -->
+        <div id="empty-state" class="flex-1 flex flex-col items-center justify-center py-16 hidden">
+          <div class="empty-state-icon">
+            <svg class="w-8 h-8 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+            </svg>
+          </div>
+          <h3 class="text-base font-medium text-slate-300 mb-1">No saved text yet</h3>
+          <p class="text-slate-600 text-sm text-center max-w-[200px]">Start typing in any form. Lazarus saves automatically.</p>
+        </div>
+
+        <!-- Entries list -->
+        <div id="entries-list"></div>
+      </div>
+
+      <!-- Footer -->
+      <footer class="flex-shrink-0 px-4 py-2 border-t border-slate-800/50 bg-slate-950">
+        <div class="flex items-center justify-between text-xs text-slate-600">
+          <span id="storage-stats">0% storage</span>
+          <span id="entry-count">0 entries</span>
+        </div>
+      </footer>
+    </div>
+
+    <!-- Settings Panel -->
+    <div id="settings-panel" class="slide-panel">
+      <header class="header-blur px-4 py-3 flex items-center gap-3">
+        <button id="close-settings-btn" class="btn-icon -ml-2" aria-label="Back">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+          </svg>
+        </button>
+        <h2 class="text-base font-medium text-slate-100">Settings</h2>
+      </header>
+      
+      <div class="flex-1 overflow-y-auto p-4 space-y-4">
+        <!-- Storage -->
+        <div class="card p-4">
+          <h3 class="text-sm font-medium text-slate-300 mb-3">Storage</h3>
+          <div class="space-y-2">
+            <div class="flex justify-between text-sm">
+              <span class="text-slate-500">Used</span>
+              <span id="settings-storage-used" class="text-slate-300">0 KB</span>
+            </div>
+            <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
+              <div id="settings-storage-bar" class="h-full bg-emerald-600 rounded-full transition-all duration-300" style="width: 0%"></div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Security -->
+        <div class="card p-4">
+          <h3 class="text-sm font-medium text-slate-300 mb-3">Security</h3>
+          <button id="reset-pin-btn" class="btn-ghost w-full justify-center">Reset PIN</button>
+        </div>
+        
+        <!-- Danger Zone -->
+        <div class="card p-4 border-red-900/30">
+          <h3 class="text-sm font-medium text-slate-300 mb-3">Danger Zone</h3>
+          <button id="clear-data-btn" class="btn-danger w-full justify-center">Clear All Data</button>
+          <p class="text-slate-600 text-xs mt-2 text-center">Permanently deletes all saved form data</p>
+        </div>
+        
+        <!-- About -->
+        <div class="text-center pt-4 pb-8">
+          <p class="text-slate-600 text-xs">Lazarus v1.0.0</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toast" class="toast">
+      <svg id="toast-icon" class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+      </svg>
+      <span id="toast-message"></span>
+    </div>
+  </div>
+  
+  <script type="module" src="./index.js"></script>
+</body>
+</html>

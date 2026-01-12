@@ -1,0 +1,200 @@
+@import '@fontsource/geist-sans/400.css';
+@import '@fontsource/geist-sans/500.css';
+@import '@fontsource/geist-sans/600.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Base styles */
+html, body {
+  @apply bg-slate-950 text-slate-100 antialiased;
+  font-family: 'Geist Sans', system-ui, -apple-system, sans-serif;
+  min-height: 100%;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-slate-700/50 rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-slate-600/70;
+}
+
+/* Custom components */
+@layer components {
+  .btn-primary {
+    @apply px-2.5 py-1 bg-emerald-600 text-white text-xs font-medium rounded-md 
+           hover:bg-emerald-500 active:bg-emerald-700
+           transition-all duration-150 ease-out
+           focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:ring-offset-2 focus:ring-offset-slate-900;
+  }
+
+  .btn-ghost {
+    @apply px-3 py-2 text-slate-400 text-sm font-medium rounded-lg 
+           hover:bg-slate-800 hover:text-slate-200
+           transition-all duration-150 ease-out
+           focus:outline-none focus:ring-2 focus:ring-slate-600/50;
+  }
+
+  .btn-danger {
+    @apply px-3 py-2 bg-red-900/50 text-red-300 text-sm font-medium rounded-lg 
+           border border-red-800/50
+           hover:bg-red-900/70 hover:text-red-200
+           transition-all duration-150 ease-out
+           focus:outline-none focus:ring-2 focus:ring-red-500/30;
+  }
+
+  .btn-icon {
+    @apply p-2 text-slate-500 hover:text-slate-300 hover:bg-slate-800 
+           rounded-lg transition-all duration-150;
+  }
+
+  .card {
+    @apply bg-slate-900/80 backdrop-blur border border-slate-800 rounded-xl;
+  }
+
+  .card-interactive {
+    @apply bg-slate-900/60 border border-slate-800/50 rounded-xl
+           hover:bg-slate-800/70 hover:border-slate-700/50
+           transition-all duration-200 ease-out cursor-pointer;
+  }
+
+  .input-field {
+    @apply w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-xl
+           text-slate-100 placeholder:text-slate-600
+           focus:outline-none focus:border-emerald-600/50 focus:ring-2 focus:ring-emerald-600/20
+           transition-all duration-150;
+  }
+
+  .pin-digit {
+    @apply w-12 h-12 text-center text-lg font-medium 
+           bg-slate-900/50 border border-slate-800 rounded-lg text-slate-100
+           focus:outline-none focus:border-emerald-600 focus:bg-slate-900
+           transition-all duration-150;
+  }
+
+  .badge {
+    @apply inline-flex items-center justify-center px-1.5 py-0.5 
+           text-[10px] font-medium rounded bg-slate-800 text-slate-500 border border-slate-700/50;
+  }
+
+  .divider {
+    @apply border-t border-slate-800/70;
+  }
+}
+
+/* Timeline entry */
+.timeline-entry {
+  @apply relative;
+}
+
+.timeline-entry:not(:last-child)::before {
+  content: '';
+  @apply absolute left-[7px] top-5 bottom-0 w-px bg-slate-800 z-0;
+}
+
+/* Fallback dot (shown when favicon fails to load) */
+.timeline-dot {
+  @apply w-4 h-4 rounded-full bg-slate-700 border-2 border-slate-900 
+         flex-shrink-0 mt-0.5 relative z-0 items-center justify-center;
+}
+
+.timeline-entry:first-child .timeline-dot {
+  @apply bg-emerald-600 border-emerald-900;
+}
+
+/* Expandable text indicator */
+.entry-text[data-is-truncated="true"] {
+  @apply hover:text-slate-200 transition-colors;
+}
+
+.entry-text[data-is-truncated="true"][data-expanded="true"] {
+  @apply text-slate-200;
+}
+
+/* PIN input container */
+.pin-container {
+  @apply flex gap-2;
+}
+
+/* Toast notification */
+.toast {
+  @apply fixed bottom-6 left-1/2 -translate-x-1/2 px-4 py-1.5
+         bg-slate-800 border border-slate-700 rounded-lg shadow-2xl shadow-black/50
+         text-slate-100 text-sm font-medium
+         flex items-center gap-2
+         opacity-0 transform translate-y-2 transition-all duration-300;
+}
+
+.toast.visible {
+  @apply opacity-100 translate-y-0;
+}
+
+.toast-success {
+  @apply border-emerald-600 bg-slate-800;
+}
+
+/* Slide-over panel */
+.slide-panel {
+  @apply fixed inset-0 bg-slate-950 
+         transform translate-x-full transition-transform duration-300 ease-out
+         z-50 flex flex-col;
+}
+
+.slide-panel.open {
+  @apply translate-x-0;
+}
+
+/* Header blur effect */
+.header-blur {
+  @apply bg-slate-950/80 backdrop-blur-xl border-b border-slate-800/50;
+}
+
+/* Empty state */
+.empty-state-icon {
+  @apply w-16 h-16 rounded-2xl bg-gradient-to-br from-slate-800 to-slate-900 
+         border border-slate-700/50 flex items-center justify-center mb-4;
+}
+
+/* Metadata label */
+.meta-label {
+  @apply text-xs text-slate-500;
+}
+
+.meta-value {
+  @apply text-xs text-slate-400 font-medium;
+}
+
+/* Search input */
+.search-input {
+  @apply w-full px-3 py-2 pl-9 bg-slate-900/50 border border-slate-800 rounded-lg
+         text-slate-200 text-sm placeholder:text-slate-600
+         outline-none focus:border-slate-700 focus:bg-slate-900
+         transition-colors duration-150;
+}
+
+/* Expandable text */
+.expand-btn {
+  @apply text-emerald-500 hover:text-emerald-400 text-xs font-medium 
+         transition-colors cursor-pointer;
+}
+
+/* Subtle glow effect for primary elements */
+.glow-emerald {
+  box-shadow: 0 0 20px -5px rgba(16, 185, 129, 0.3);
+}
+
+/* Loading skeleton */
+.skeleton {
+  @apply animate-pulse bg-slate-800 rounded-lg;
+}

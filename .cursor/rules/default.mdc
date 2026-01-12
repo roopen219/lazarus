@@ -1,0 +1,135 @@
+---
+alwaysApply: true
+---
+
+# Lazarus Chrome Extension - Cursor Rules
+
+## Project Overview
+Lazarus is a Chrome Extension (Manifest V3) - a passive, side-panel based form recovery tool.
+**Tagline:** "Form recovery, on autopilot."
+**Design Philosophy:** Minimal, modern, sleek. Dark slate backgrounds with emerald accents.
+
+## Package Manager
+**ALWAYS use Bun, not npm or node.**
+
+## Commands
+```bash
+# Install dependencies
+bun install
+
+# Development with HMR
+bun run dev
+
+# Production build
+bun run build
+
+# Preview production build
+bun run preview
+```
+
+## Loading the Extension in Chrome
+1. Run `bun run build`
+2. Open `chrome://extensions/`
+3. Enable "Developer mode"
+4. Click "Load unpacked"
+5. Select the `dist` folder
+
+## For Development (HMR)
+1. Run `bun run dev`
+2. Load the `dist` folder in Chrome
+3. Changes will hot-reload automatically
+
+## Tech Stack
+- **Build:** Vite + @crxjs/vite-plugin (Manifest V3)
+- **Core:** Vanilla JavaScript (ES Modules) - NO React/Vue/Svelte
+- **Styling:** Tailwind CSS
+- **Font:** Geist Sans (@fontsource/geist-sans)
+- **Libraries:**
+  - `luxon` - Date/time manipulation
+  - `fast-levenshtein` - Text diff calculation
+
+## Design System: Modern Slate + Emerald
+### Colors (Tailwind defaults)
+- Background: `slate-950`
+- Cards/Surfaces: `slate-900` with transparency
+- Borders: `slate-800`
+- Text Primary: `slate-100`, `slate-200`, `slate-300`
+- Text Muted: `slate-500`, `slate-600`
+- Accent: `emerald-600`, `emerald-500`
+- Error: `red-400`
+
+### UI Principles
+- Minimal, no heavy cards - use timeline-based layouts
+- Icons appear on hover, replacing timestamps (no layout shift)
+- Left-aligned PIN inputs, not centered
+- Two-tone headlines: primary text white, secondary text gray
+- Consistent vertical rhythm throughout
+
+### Components
+- Rounded corners: `rounded-lg` for inputs/buttons, `rounded-xl` sparingly
+- No backdrop blur on main content (keep it clean)
+- Timeline dots: emerald for latest, slate for older entries
+
+## Architecture Notes
+
+### Content Script (`src/content/index.js`)
+- Single event listener with `{ capture: true, passive: true }`
+- Pierces Shadow DOM via `event.composedPath()[0]`
+- NO MutationObserver for zero overhead
+- Generates stable selectors: id → name → aria-label → placeholder → path
+
+### Background Worker (`src/background/index.js`)
+- Debounces input (1000ms silence threshold)
+- Uses Levenshtein distance for "significant change" detection
+- Threshold: <10 chars = update existing, >=10 chars = new version
+- Implements LRU eviction for storage quota management (5MB limit)
+
+### Side Panel (`src/sidepanel/`)
+- **PIN Security:** Web Crypto API (SHA-256 + salt), session in memory only
+- **Real-time updates:** `chrome.storage.onChanged` listener auto-refreshes list
+- **Flat chronological list:** Each version is a separate entry, sorted by timestamp
+- **Timeline UI:** Vertical line connecting entries, dots on left, hover for actions
+- **Search:** Filters across text, label, and host
+
+### Data Schema
+```json
+{
+  "host.com": {
+    "/path": {
+      "selector": {
+        "label": "Field Name",
+        "lastUpdated": 1704560500,
+        "versions": [
+          { "ts": 1704560000, "text": "Draft one..." },
+          { "ts": 1704560500, "text": "Draft two..." }
+        ]
+      }
+    }
+  }
+}
+```
+
+## File Structure
+```
+src/
+├── background/
+│   └── index.js      # Service worker (debounce, diffing, storage)
+├── content/
+│   └── index.js      # Content script (event capture)
+├── sidepanel/
+│   ├── index.html    # Side panel markup
+│   ├── index.js      # UI logic (PIN, timeline, search)
+│   └── styles.css    # Tailwind + custom components
+└── utils/
+    ├── storage.js    # Storage, LRU, flat entry retrieval
+    └── crypto.js     # PIN hashing/validation
+```
+
+## Important Reminders
+1. Content script runs in `all_frames: true` and `match_about_blank: true`
+2. Never store PIN or derived keys in persistent storage
+3. Use `chrome.storage.local` for data, not localStorage
+4. Use `chrome.storage.onChanged` for real-time UI updates
+5. Always use `composedPath()[0]` for Shadow DOM support
+6. Truncate labels >20 chars with ellipsis in UI
+7. Use `requestAnimationFrame` double-call for reliable focus after DOM changes
