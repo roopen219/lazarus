@@ -41,10 +41,13 @@ bun run preview
 
 ## Tech Stack
 - **Build:** Vite + @crxjs/vite-plugin (Manifest V3)
-- **Core:** Vanilla JavaScript (ES Modules) - NO React/Vue/Svelte
+- **Core:** Mithril.js (lightweight ~10KB virtual DOM framework)
 - **Styling:** Tailwind CSS
 - **Font:** Geist Sans (@fontsource/geist-sans)
 - **Libraries:**
+  - `mithril` - UI framework (virtual DOM, no innerHTML XSS vulnerabilities)
+  - `fuse.js` - Fuzzy search for entries
+  - `lodash-es` - Throttle utility
   - `luxon` - Date/time manipulation
   - `fast-levenshtein` - Text diff calculation
 
@@ -79,17 +82,19 @@ bun run preview
 - Generates stable selectors: id → name → aria-label → placeholder → path
 
 ### Background Worker (`src/background/index.js`)
-- Debounces input (1000ms silence threshold)
+- Throttles input (1000ms interval with trailing call for final state)
 - Uses Levenshtein distance for "significant change" detection
 - Threshold: <10 chars = update existing, >=10 chars = new version
 - Implements LRU eviction for storage quota management (5MB limit)
 
 ### Side Panel (`src/sidepanel/`)
+- **Framework:** Mithril.js - all UI built with m() function (no innerHTML, XSS-safe)
 - **PIN Security:** Web Crypto API (SHA-256 + salt), session in memory only
 - **Real-time updates:** `chrome.storage.onChanged` listener auto-refreshes list
 - **Flat chronological list:** Each version is a separate entry, sorted by timestamp
 - **Timeline UI:** Vertical line connecting entries, dots on left, hover for actions
-- **Search:** Filters across text, label, and host
+- **Search:** Fuse.js fuzzy search with 150ms debounce, searches text/label/host
+- **Virtual Scrolling:** Simple custom implementation for 10,000+ entry performance
 
 ### Data Schema
 ```json
@@ -113,12 +118,12 @@ bun run preview
 ```
 src/
 ├── background/
-│   └── index.js      # Service worker (debounce, diffing, storage)
+│   └── index.js      # Service worker (throttle, diffing, storage)
 ├── content/
 │   └── index.js      # Content script (event capture)
 ├── sidepanel/
-│   ├── index.html    # Side panel markup
-│   ├── index.js      # UI logic (PIN, timeline, search)
+│   ├── index.html    # Minimal mount point for Mithril
+│   ├── index.js      # Mithril components (PIN, virtual list, search)
 │   └── styles.css    # Tailwind + custom components
 └── utils/
     ├── storage.js    # Storage, LRU, flat entry retrieval
@@ -133,3 +138,6 @@ src/
 5. Always use `composedPath()[0]` for Shadow DOM support
 6. Truncate labels >20 chars with ellipsis in UI
 7. Use `requestAnimationFrame` double-call for reliable focus after DOM changes
+8. **NEVER use innerHTML** - always use Mithril's m() function for DOM creation (XSS prevention)
+9. Virtual scroll uses ESTIMATED_ITEM_HEIGHT (85px) - tune if items render differently
+10. Fuse.js index is rebuilt on every loadEntries() call

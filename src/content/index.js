@@ -9,6 +9,17 @@
 // Types to ignore
 const IGNORED_TYPES = new Set(['password', 'hidden', 'submit', 'button', 'file', 'image', 'reset']);
 
+// Sensitive autocomplete values (credit cards, banking, auth)
+const SENSITIVE_AUTOCOMPLETE = new Set([
+  'cc-name', 'cc-given-name', 'cc-additional-name', 'cc-family-name',
+  'cc-number', 'cc-exp', 'cc-exp-month', 'cc-exp-year', 'cc-csc', 'cc-type',
+  'transaction-currency', 'transaction-amount',
+  'new-password', 'current-password', 'one-time-code',
+]);
+
+// Patterns in field names/ids that indicate sensitive data
+const SENSITIVE_NAME_PATTERNS = /\b(password|passwd|pwd|pin|cvv|cvc|csc|ccv|credit.?card|card.?number|cc.?num|security.?code|expir|exp.?date|exp.?month|exp.?year|ssn|social.?security|routing|account.?num|bank|otp|2fa|totp|verification.?code|auth.?code)\b/i;
+
 /**
  * Generate a stable selector for an element
  * Uses heuristics: id > name > aria-label > placeholder > path from nearest ID
@@ -146,6 +157,45 @@ function extractValue(element) {
 }
 
 /**
+ * Check if an element contains sensitive data (passwords, credit cards, etc.)
+ * @param {HTMLElement} element
+ * @returns {boolean}
+ */
+function isSensitiveField(element) {
+  // Check autocomplete attribute
+  const autocomplete = element.getAttribute('autocomplete');
+  if (autocomplete && SENSITIVE_AUTOCOMPLETE.has(autocomplete.toLowerCase())) {
+    return true;
+  }
+  
+  // Check name attribute for sensitive patterns
+  const name = element.name || '';
+  if (SENSITIVE_NAME_PATTERNS.test(name)) {
+    return true;
+  }
+  
+  // Check id attribute for sensitive patterns
+  const id = element.id || '';
+  if (SENSITIVE_NAME_PATTERNS.test(id)) {
+    return true;
+  }
+  
+  // Check aria-label for sensitive patterns
+  const ariaLabel = element.getAttribute('aria-label') || '';
+  if (SENSITIVE_NAME_PATTERNS.test(ariaLabel)) {
+    return true;
+  }
+  
+  // Check placeholder for sensitive patterns
+  const placeholder = element.getAttribute('placeholder') || '';
+  if (SENSITIVE_NAME_PATTERNS.test(placeholder)) {
+    return true;
+  }
+  
+  return false;
+}
+
+/**
  * Check if an element should be monitored
  * @param {HTMLElement} element
  * @returns {boolean}
@@ -158,22 +208,25 @@ function shouldMonitor(element) {
   // Standard inputs
   if (tagName === 'input') {
     const type = (element.type || 'text').toLowerCase();
-    return !IGNORED_TYPES.has(type);
+    if (IGNORED_TYPES.has(type)) return false;
+    // Additional check for sensitive fields
+    if (isSensitiveField(element)) return false;
+    return true;
   }
   
-  // Textareas
+  // Textareas - check for sensitive content
   if (tagName === 'textarea') {
-    return true;
+    return !isSensitiveField(element);
   }
   
-  // ContentEditable elements
+  // ContentEditable elements - check for sensitive content
   if (element.isContentEditable) {
-    return true;
+    return !isSensitiveField(element);
   }
   
   // ARIA textbox role (for custom implementations)
   if (element.getAttribute('role') === 'textbox') {
-    return true;
+    return !isSensitiveField(element);
   }
   
   return false;

@@ -1,17 +1,18 @@
 /**
  * Lazarus Background Service Worker
- * Handles debouncing, Levenshtein diffing, and storage management
+ * Handles throttled saves, Levenshtein diffing, and storage management
  */
 
+import { throttle } from 'lodash-es';
 import levenshtein from 'fast-levenshtein';
 import { getFieldData, saveFieldData } from '../utils/storage.js';
 
-// Debounce configuration
-const DEBOUNCE_MS = 1000;
+// Throttle configuration
+const THROTTLE_MS = 1000;
 const SIGNIFICANT_CHANGE_THRESHOLD = 10;
 
-// Debounce buffers: Map<fieldKey, { timeout, data }>
-const debounceBuffers = new Map();
+// Map of throttled save functions per field
+const throttledSavers = new Map();
 
 /**
  * Generate a unique key for a field
@@ -25,7 +26,7 @@ function getFieldKey(host, path, selector) {
 }
 
 /**
- * Process a captured input after debounce
+ * Process a captured input
  * @param {Object} data
  */
 async function processInput(data) {
@@ -66,6 +67,26 @@ async function processInput(data) {
 }
 
 /**
+ * Get or create a throttled saver for a specific field
+ * @param {string} fieldKey
+ * @returns {Function}
+ */
+function getThrottledSaver(fieldKey) {
+  if (!throttledSavers.has(fieldKey)) {
+    // Create a throttled function for this field
+    // leading: true = save immediately on first call
+    // trailing: true = save final value after typing stops
+    const throttledFn = throttle(
+      (data) => processInput(data),
+      THROTTLE_MS,
+      { leading: true, trailing: true }
+    );
+    throttledSavers.set(fieldKey, throttledFn);
+  }
+  return throttledSavers.get(fieldKey);
+}
+
+/**
  * Handle incoming messages from content scripts
  * @param {Object} message
  * @param {chrome.runtime.MessageSender} sender
@@ -79,23 +100,9 @@ function handleMessage(message, sender, sendResponse) {
   const { host, path, selector } = message.payload;
   const fieldKey = getFieldKey(host, path, selector);
   
-  // Clear existing timeout for this field
-  const existing = debounceBuffers.get(fieldKey);
-  if (existing?.timeout) {
-    clearTimeout(existing.timeout);
-  }
-  
-  // Set new debounce timeout
-  const timeout = setTimeout(() => {
-    debounceBuffers.delete(fieldKey);
-    processInput(message.payload);
-  }, DEBOUNCE_MS);
-  
-  // Store in buffer
-  debounceBuffers.set(fieldKey, {
-    timeout,
-    data: message.payload,
-  });
+  // Get the throttled saver for this field and call it
+  const throttledSave = getThrottledSaver(fieldKey);
+  throttledSave(message.payload);
 }
 
 // Listen for messages from content scripts

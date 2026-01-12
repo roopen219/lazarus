@@ -96,6 +96,9 @@ html, body {
 /* Timeline entry */
 .timeline-entry {
   @apply relative;
+  /* Containment for scroll performance - isolates layout/paint */
+  contain: layout style paint;
+  contain-intrinsic-size: auto 85px;
 }
 
 .timeline-entry:not(:last-child)::before {
