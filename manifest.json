@@ -5,8 +5,7 @@
   "version": "1.0.0",
   "permissions": [
     "sidePanel",
-    "storage",
-    "tabs"
+    "storage"
   ],
   "side_panel": {
     "default_path": "src/sidepanel/index.html"
