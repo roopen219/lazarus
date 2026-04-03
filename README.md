@@ -93,7 +93,7 @@ Automatic LRU (Least Recently Used) eviction ensures you never hit storage limit
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/lazarus.git
+   git clone https://github.com/roopen219/lazarus.git
    cd lazarus
    ```
 
